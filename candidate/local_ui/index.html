@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>哈基米数字人 v7.0.0</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐱</text></svg>">
+<style>
+  :root{
+    --side-bg:#3d3a8f; --side-dim:rgba(255,255,255,.55);
+    --active-bg:rgba(255,255,255,.16); --accent:#5b54d9; --accent-deep:#4d47c4;
+    --banner-1:#4f4bb8; --banner-2:#6a66d8; --content-bg:#f2f3fa;
+    --card:#ffffff; --ink:#23263b; --muted:#8b90a8; --line:#eceef6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;background:var(--content-bg);color:var(--ink);display:flex;overflow:hidden}
+  /* ===== 侧栏 ===== */
+  #side{width:200px;min-width:200px;background:var(--side-bg);color:#fff;display:flex;flex-direction:column;padding:18px 0 12px}
+  #logo{display:flex;align-items:center;gap:10px;padding:2px 20px 18px}
+  #logo .mark{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#8f8cf0,#2f2c78);display:flex;align-items:center;justify-content:center;font-size:18px}
+  #logo .name{font-size:16px;font-weight:700}
+  .sec{font-size:12px;color:var(--side-dim);padding:14px 22px 6px}
+  .nav{display:flex;align-items:center;gap:10px;padding:11px 22px;font-size:14px;cursor:pointer;position:relative;color:#e8e9ff}
+  .nav:hover{background:rgba(255,255,255,.08)}
+  .nav.on{background:var(--active-bg);font-weight:600}
+  .nav.on::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;background:#fff;border-radius:2px}
+  .nav svg{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  #usercard{margin:auto 10px 0;background:var(--active-bg);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px}
+  #usercard .ava{width:34px;height:34px;border-radius:50%;background:#5b54d9;display:flex;align-items:center;justify-content:center}
+  #usercard .ph{font-size:13px;font-weight:600}
+  #usercard .ro{font-size:11px;color:var(--side-dim)}
+  /* ===== 主区 ===== */
+  #main{flex:1;overflow-y:auto;padding:22px 26px}
+  .banner{background:linear-gradient(120deg,var(--banner-1),var(--banner-2));border-radius:16px;color:#fff;padding:26px 30px;margin-bottom:18px;position:relative;overflow:hidden}
+  .banner h1{font-size:24px;letter-spacing:1px}
+  .banner .sub{margin-top:8px;font-size:13px;color:rgba(255,255,255,.78)}
+  .banner .ricon{position:absolute;right:26px;top:24px;opacity:.85}
+  .card{background:var(--card);border-radius:14px;padding:20px 22px;margin-bottom:18px;box-shadow:0 1px 2px rgba(30,30,80,.04)}
+  .dot{width:8px;height:8px;border-radius:50%;background:#f5a623;display:inline-block}
+  .dot.red{background:#e5484d}.dot.green{background:#30a46c}
+  .hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .hd .l{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:600}
+  .muted{color:var(--muted);font-size:13px}
+  .btn{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:9px 18px;font-size:14px;cursor:pointer;font-family:inherit}
+  .btn:hover{background:var(--accent-deep)}
+  .btn.ghost{background:#fff;color:var(--ink);border:1px solid #e2e4f0}
+  .btn.ghost:hover{background:#f6f6fc}
+  .btn.big{width:100%;padding:13px;font-size:15px;border-radius:12px}
+  .btn.danger{background:#e5484d}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .pill{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #e2e4f0;border-radius:10px;padding:8px 14px;font-size:13px;cursor:pointer;color:var(--ink)}
+  .pill.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .pill.off,.toggle.off{opacity:.45;cursor:not-allowed}
+  input[type=text],input[type=password],textarea,select{font-family:inherit;font-size:13px;border:1px solid #e2e4f0;border-radius:10px;padding:10px 12px;color:var(--ink);background:#fff;outline:none;width:100%}
+  textarea{resize:vertical}
+  input:focus,textarea:focus,select:focus{border-color:#b9b5f2}
+  .toggle{width:44px;height:24px;border-radius:12px;background:#d8dae8;position:relative;cursor:pointer;transition:.15s;flex:none}
+  .toggle.on{background:var(--accent)}
+  .toggle::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.15s}
+  .toggle.on::after{left:23px}
+  .grid{display:grid;gap:16px}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .thumb{position:relative;border-radius:12px;overflow:hidden;aspect-ratio:9/16;background:linear-gradient(160deg,#2f9e6c,#1d7a4f);cursor:pointer;min-height:230px}
+  .thumb .badge{position:absolute;top:8px;left:8px;background:#e5484d;color:#fff;font-size:11px;border-radius:6px;padding:2px 8px;z-index:2}
+  .thumb .ops{position:absolute;top:8px;right:8px;display:flex;gap:6px;z-index:2}
+  .thumb .ops span{width:26px;height:26px;border-radius:8px;background:rgba(0,0,0,.45);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer}
+  .thumb .golive{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);background:var(--accent);color:#fff;border:0;border-radius:20px;padding:8px 18px;font-size:13px;cursor:pointer;font-family:inherit;display:flex;gap:6px;align-items:center;z-index:2}
+  .thumb .meta{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(transparent,rgba(0,0,0,.65));color:#fff;padding:26px 10px 10px;font-size:12px;z-index:1}
+  .empty-dash{border:2px dashed #d9ddf2;border-radius:14px;height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--accent);cursor:pointer;width:190px}
+  .empty-c{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 0;gap:12px}
+  .note{display:flex;gap:6px;align-items:flex-start;font-size:12px;color:var(--muted);margin-top:8px}
+  .row{display:flex;align-items:center;gap:12px;margin-top:14px}
+  .row label{font-size:13px;color:var(--ink);min-width:70px}
+  .kv .k{font-size:13px;font-weight:600}
+  .kv .d{font-size:12px;color:var(--muted);margin-top:4px}
+  .stepper{display:flex;align-items:center;border:1px solid #e2e4f0;border-radius:8px;overflow:hidden;flex:none}
+  .stepper span{width:30px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#fafafe;font-size:15px;color:#666}
+  .stepper input{border:0;width:64px;text-align:center;border-radius:0;border-left:1px solid #e2e4f0;border-right:1px solid #e2e4f0;height:34px}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap}
+  .tabs .tb{padding:8px 16px;border-radius:10px;font-size:13px;cursor:pointer;background:#fff;border:1px solid #e2e4f0}
+  .tabs .tb.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .chat{background:#fafafd;border-radius:12px;padding:18px;min-height:300px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+  .bub{max-width:70%;padding:12px 16px;border-radius:12px;font-size:14px;line-height:1.7}
+  .bub.ai{background:#fff;border:1px solid var(--line);align-self:flex-start}
+  .bub.me{background:var(--accent);color:#fff;align-self:flex-end}
+  #mask{position:fixed;inset:0;background:rgba(20,20,40,.45);display:none;align-items:center;justify-content:center;z-index:50}
+  #mask.show{display:flex}
+  #modal{background:#fff;border-radius:16px;padding:24px;width:440px;max-height:82vh;overflow:auto}
+  #modal h3{font-size:16px;margin-bottom:14px}
+  #toast{position:fixed;left:50%;bottom:36px;transform:translateX(-50%);background:#23263b;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;opacity:0;transition:.25s;z-index:99;pointer-events:none}
+  #toast.show{opacity:.95}
+  .page{display:none}.page.on{display:block}
+  body.noside #side{display:none}
+  body.noside{display:block}
+  body.noside #main{padding:0}
+  .backbar{display:flex;align-items:center;gap:12px;padding:14px 22px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
+  .chk{display:flex;gap:10px;align-items:flex-start;padding:10px 0;font-size:14px}
+  .chk input{width:auto;margin-top:3px}
+  .stat3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .mod{border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;justify-content:space-between;align-items:center}
+  .tagok{background:#e7f6ee;color:#30a46c;font-size:12px;border-radius:6px;padding:2px 8px}
+  .tagoff{background:#f0f1f7;color:#8b90a8;font-size:12px;border-radius:6px;padding:2px 8px}
+  /* [进度动画 2026-09-20] 短视频上传/生成真实进度条与阶段指示 */
+  .wbar{height:10px;background:#eef0f6;border-radius:6px;overflow:hidden}
+  .wbar>div{height:100%;background:linear-gradient(90deg,#7b78e2,#9a97ef);border-radius:6px;transition:width .5s ease}
+  .wstep{flex:none;font-size:12px;padding:5px 12px;border-radius:14px;background:#f0f1f7;color:#8b90a8}
+  .wstep.on{background:#7b78e2;color:#fff;animation:wpulse 1.2s ease-in-out infinite}
+  .wstep.done{background:#e7f6ee;color:#1d7a4f}
+  @keyframes wpulse{0%,100%{opacity:1}50%{opacity:.55}}
+  video#pv{width:100%;border-radius:12px;background:#000;min-height:320px}
+  .stat{background:#fff;border-radius:14px;padding:18px 20px;display:flex;justify-content:space-between;align-items:center}
+  .stat .n{font-size:26px;font-weight:700;margin-top:6px}
+  .stat .ic{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px}
+</style>
+</head>
+<body>
+<div id="side">
+  <div id="logo"><div class="mark">🐱</div><div class="name">哈基米数字人</div></div>
+  <div class="sec">工作台</div>
+  <div class="nav on" data-p="dash" onclick="go('dash')"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a2 2 0 0 1-2 2h-4v-6h-6v6H5a2 2 0 0 1-2-2z"/></svg>工作台</div>
+  <div class="sec">直播</div>
+  <div class="nav" data-p="live" onclick="go('live')"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg>直播</div>
+  <div class="nav" data-p="guard" onclick="go('guard')"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>保镖</div>
+  <div class="nav" data-p="copy" onclick="go('copy')"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 1 4 10c-.8.8-1 1.5-1 3h-6c0-1.5-.2-2.2-1-3a6 6 0 0 1 4-10z"/></svg>文案</div>
+  <div class="nav" data-p="tool" onclick="go('tool')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>工具</div>
+  <div class="sec">短视频</div>
+  <div class="nav" data-p="works" onclick="go('works')"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9.5l5 2.5-5 2.5z"/></svg>短视频</div>
+  <div class="sec">资产</div>
+  <div class="nav" data-p="model" onclick="go('model')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>模特</div>
+  <div class="nav" data-p="voice" onclick="go('voice')"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>声音</div>
+  <div class="nav" data-p="llm" onclick="go('llm')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg>大模型</div>
+  <div id="usercard"><div class="ava">👤</div><div><div class="ph" id="uname">本地账户</div><div class="ro">用户</div></div></div>
+</div>
+<div id="main">
+
+<!-- 工作台 -->
+<div class="page on" id="p-dash">
+  <div class="banner">
+    <h1>欢迎使用数字人直播系统</h1>
+    <div class="sub">快速创建直播 · 管理数字人 · 生成短视频</div>
+    <button class="btn" style="position:absolute;right:28px;top:26px;background:#fff;color:var(--accent);font-weight:600" onclick="go('livecreate')">📹 新建直播</button>
+    <div class="grid g4" style="margin-top:22px">
+      <div class="nav" style="background:rgba(255,255,255,.12);border-radius:12px;padding:14px 16px" onclick="go('cloud')"><div><div style="font-weight:600">☁ 云算力</div><div style="font-size:12px;color:rgba(255,255,255,.65);margin-top:4px">云端GPU算力资源</div></div></div>
+      <div class="nav" style="background:rgba(255,255,255,.12);border-radius:12px;padding:14px 16px" onclick="go('modules')"><div><div style="font-weight:600">▦ 模块管理</div><div style="font-size:12px;color:rgba(255,255,255,.65);margin-top:4px">配置和管理功能模块</div></div></div>
+      <div class="nav" style="background:rgba(255,255,255,.12);border-radius:12px;padding:14px 16px" onclick="go('model')"><div><div style="font-weight:600">👤 数字孪生</div><div style="font-size:12px;color:rgba(255,255,255,.65);margin-top:4px">克隆您的专属数字人</div></div></div>
+      <div class="nav" style="background:rgba(255,255,255,.12);border-radius:12px;padding:14px 16px" onclick="go('voice')"><div><div style="font-weight:600">🎙 声音克隆</div><div style="font-size:12px;color:rgba(255,255,255,.65);margin-top:4px">克隆您的专属声音</div></div></div>
+    </div>
+  </div>
+  <div class="card"><div class="hd"><div class="l"><span class="dot"></span>最近直播</div><span class="muted" style="cursor:pointer" onclick="renderDash()">⟳</span></div>
+    <div class="grid g4" id="dash-lives"></div></div>
+  <div class="card"><div class="hd"><div class="l"><span class="dot"></span>最近短视频</div><span class="muted" style="cursor:pointer" onclick="toast('请前往「短视频」页查看作品列表')">⟳</span></div><!-- [短视频接入 2026-09-20] 工作台入口随实装接线 -->
+    <div class="empty-dash" onclick="go('workcreate')"><div style="font-size:26px">＋</div>快速创建</div></div>
+</div>
+
+<!-- 直播管理 -->
+<div class="page" id="p-live">
+  <div class="card">
+    <div class="hd"><div class="l"><span class="dot"></span>直播管理 <span class="muted" id="live-n">(0)</span></div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <select class="pill" id="pf" style="width:auto;padding:8px 12px" onchange="renderLives()"><option>全部平台</option><option>抖音</option><option>视频号</option><option>淘宝</option></select>
+        <input type="text" id="lq" placeholder="搜索直播名称" style="width:180px" oninput="renderLives()">
+        <span class="muted" style="cursor:pointer" onclick="renderLives()">⟳</span>
+        <button class="btn" onclick="newLive()">＋ 新建直播</button>
+      </div></div>
+    <div class="grid g4" id="live-grid"></div>
+    <div id="live-empty" class="empty-c" style="display:none"><div style="font-size:34px">🗓</div><div class="muted">暂无直播</div><button class="btn" onclick="newLive()">＋ 创建第一个直播</button></div>
+  </div>
+</div>
+
+<!-- 直播保镖 -->
+<div class="page" id="p-guard">
+  <div class="banner" style="background:linear-gradient(120deg,#7b78e2,#9a97ef)"><h1>直播保镖</h1><div class="sub">画面内容检测待接入，当前仅监测引擎状态</div><div class="ricon" style="font-size:30px">🖥</div></div>
+  <div class="card"><h2 style="font-size:15px;margin-bottom:12px">直播平台 <span class="tagoff">待接入</span></h2><div style="display:flex;gap:10px">
+    <span class="pill off">抖音</span><span class="pill off">视频号</span><span class="pill off">淘宝</span></div></div>
+  <div class="card"><div class="hd"><div class="l"><span class="dot"></span>违规关键词 <span class="tagoff">检测待接入</span></div></div>
+    <textarea id="kw" style="height:90px">封禁
+非实时
+违规提醒
+人机验证
+开始验证</textarea>
+    <div class="note">ⓘ 画面内容检测待接入，当前仅监测引擎状态；已填写的关键词暂不参与自动检测（自动下播/违规提醒待接入）</div></div>
+  <div class="card"><div class="hd"><div class="l"><span class="dot"></span>违禁词（话术过滤）</div></div>
+    <textarea id="bw" style="height:70px" placeholder="竖杠分割，例如：最好|顶级"></textarea>
+    <div class="note">ⓘ 保存后，开播说话内容将自动剔除上述违禁词（竖杠分割，经本地引擎过滤）</div>
+    <div class="row" style="justify-content:flex-end"><button class="btn" onclick="bwSave('bw')">保存违禁词</button></div></div>
+  <div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;gap:8px;font-weight:600;font-size:15px"><span class="dot red"></span>自动下播 <span class="tagoff">待接入</span></div><div class="toggle off"></div></div>
+    <div class="row"><label>延迟时间</label><span class="pill off">10s</span><span class="pill off">20s</span><span class="pill off">30s</span><span class="pill off">40s</span></div></div>
+  <!-- T-011(R-1B-005): 选整卡置灰明示方案(不接 enumerateDevices);删除指向不存在"刷新"按钮的指示 -->
+  <div class="card" style="opacity:.72"><div style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;gap:8px;font-weight:600;font-size:15px"><span class="dot green"></span>违规提醒 <span class="tagoff">待接入</span></div><div class="toggle off"></div></div>
+    <div class="row"><label>扬声器</label><select id="spk" style="flex:1" disabled><option>扬声器枚举待接入（需客户端环境，当前不可选）</option></select><button class="btn ghost" onclick="toast('试听功能待接入本地音频管线')">🔊 试听</button></div>
+    <div class="note">ⓘ 扬声器枚举待接入（需客户端环境）；违规提醒启用后请使用外放扬声器，避免提醒进入直播间</div></div>
+  <!-- T-072(R-3-006): 保镖页缺失三域(定时管理/屏幕缩放提醒/人脸验证指南)明示 -->
+  <div class="card"><div class="hd"><div class="l"><span class="dot"></span>定时管理 / 屏幕缩放提醒 / 人脸验证指南 <span class="tagoff">待接入</span></div></div>
+    <div class="note" style="margin-top:0">ⓘ 原版保镖页的 定时管理（定时开播/定时下播）、屏幕缩放必须100%提醒、远程过直播伴侣人脸验证—使用指南 三个域待接入；当前版本保镖仅监测引擎状态与违禁词配置（定时下播在开播控制台内）</div></div>
+  <div class="card"><div class="hd"><div class="l"><span class="dot"></span>实时监控日志</div></div>
+    <div id="guard-log" class="empty-c" style="padding:26px 0"><div style="font-size:30px">📄</div><div class="muted">暂无监控结果</div><div class="muted" style="font-size:12px">开始运行后将显示实时监控日志</div></div></div>
+  <button class="btn big" id="guard-run" onclick="guardRun()">⏺ 开始运行</button>
+</div>
+
+<!-- AI文案 -->
+<div class="page" id="p-copy">
+  <div class="card"><div style="display:flex;gap:12px;align-items:center"><div style="width:40px;height:40px;border-radius:12px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px">💡</div>
+    <div><div style="font-weight:700;font-size:16px">AI文案</div><div class="muted" style="font-size:12px">智能AI助手，为您生成专业文案</div></div></div></div>
+  <!-- T-013(R-1B-008): 会话模块(chat-* 6 页与知识库域)待接入声明 -->
+  <div class="card"><div class="hd"><div class="l"><span class="dot"></span>会话模块 <span class="tagoff">待接入</span></div></div>
+    <div class="note" style="margin-top:0">ⓘ 原版「AI 会话 / 知识库问答」域（多会话管理、知识库文档问答）待接入：当前「文案」页仅提供单轮 AI 文案生成</div></div>
+  <div class="card" style="display:flex;gap:18px">
+    <div style="flex:1.6;display:flex;flex-direction:column">
+      <div class="chat" id="chat"><div class="bub ai">请问有什么可以帮助您?</div></div>
+      <div style="position:relative;margin-top:12px">
+        <textarea id="prompt" placeholder="请输入提示词" style="min-height:80px"></textarea>
+        <button class="btn" style="position:absolute;right:10px;bottom:10px;border-radius:50%;width:38px;height:38px;padding:0" onclick="sendChat()">➤</button>
+      </div></div>
+    <div style="flex:1;border-left:1px solid var(--line);padding-left:18px">
+      <div style="display:flex;gap:8px;font-weight:600;font-size:15px"><span class="dot"></span>模型设置</div>
+      <div class="muted" style="margin:12px 0 8px;font-size:13px">系统提示词</div>
+      <textarea style="min-height:200px" id="sysprompt">你是一个乐于解答各种问题的助手，你的任务是为用户提供专业、准确、有见地的建议。</textarea>
+    </div></div>
+</div>
+
+<!-- 工具箱 -->
+<div class="page" id="p-tool">
+  <div class="banner" style="background:linear-gradient(120deg,#7b78e2,#9a97ef)"><h1>工具箱</h1><div class="sub">音频处理 · 流媒体 · 效率工具</div></div>
+  <div class="card"><div style="display:flex;gap:8px;font-weight:600;font-size:15px;margin-bottom:16px"><span class="dot"></span>音频</div>
+    <div style="border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between"><div style="font-size:20px">📄</div><span class="muted">01</span></div>
+      <div style="font-weight:700;margin:8px 0 4px">话术识别</div><div class="muted" style="font-size:12px">识别录制的直播间的话术</div>
+      <button class="btn" style="margin-top:12px" onclick="toast('话术识别依赖本地语音识别管线，将在后续版本接入')">⬆ 选择录制文件</button></div>
+    <div style="border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between"><div style="font-size:20px">✂</div><span class="muted">02</span></div>
+      <div style="font-weight:700;margin:8px 0 4px">碎片化音频分割</div><div class="muted" style="font-size:12px">将长音频根据静音停顿分割成碎片化的音频</div>
+      <div class="row"><div style="flex:1"><div class="kv"><div class="k">静音阈值</div><div class="d">音量小于这个值视作静音的备选切割点</div></div></div><div class="stepper"><span onclick="step('th',-1)">−</span><input id="th" value="-24.00"><span onclick="step('th',1)">＋</span></div></div>
+      <div class="row"><div style="flex:1"><div class="kv"><div class="k">最短时长（秒）</div><div class="d">切割后音频的最短时长</div></div></div><div class="stepper"><span onclick="step('mn',-1)">−</span><input id="mn" value="3"><span onclick="step('mn',1)">＋</span></div></div>
+      <div class="row"><div style="flex:1"><div class="kv"><div class="k">最长时长（秒）</div><div class="d">切割后音频的最长时长</div></div></div><div class="stepper"><span onclick="step('mx',-1)">−</span><input id="mx" value="15"><span onclick="step('mx',1)">＋</span></div></div></div>
+    <div style="border:1px solid var(--line);border-radius:12px;padding:18px">
+      <div style="display:flex;justify-content:space-between"><div style="font-size:20px">🎧</div><span class="muted">03</span></div>
+      <div style="font-weight:700;margin:8px 0 4px">音色转换</div><div class="muted" style="font-size:12px">将碎片化音频音色转换成克隆音色，参考音频3-15s</div>
+      <div style="display:flex;gap:10px;margin-top:12px"><button class="btn ghost" onclick="toast('依赖本地音色转换管线，将在后续版本接入')">选择碎片化文件夹</button><button class="btn ghost" onclick="toast('依赖本地音色转换管线，将在后续版本接入')">选择参考音频</button></div></div></div>
+  <div class="card"><div style="display:flex;gap:8px;font-weight:600;font-size:15px;margin-bottom:12px"><span class="dot"></span>流媒体</div>
+    <div style="border:1px solid var(--line);border-radius:12px;padding:18px">
+      <div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:700">RTMP流媒体</div><div class="muted" style="font-size:12px;margin-top:4px" id="rtmp-url">rtmp://127.0.0.1:4035/live/0</div></div>
+      <button class="btn ghost" onclick="copyRtmp()">复制</button></div>
+      <div class="note">ⓘ 支持rtmp流媒体，可以用于手机直播，远程摄像头等。obs可直接推流到这个地址，推流和拉流都是这个地址。</div></div></div>
+  <!-- T-016(R-1B-011): 场控域(换班/报时/监听/碎片化)待接入说明 -->
+  <div class="card"><div style="display:flex;gap:8px;font-weight:600;font-size:15px;margin-bottom:12px"><span class="dot"></span>场控 <span class="tagoff">待接入</span></div>
+    <div class="note" style="margin-top:0">ⓘ 场控域（换班 / 报时 / 监听 / 碎片化切片）待接入：当前工具箱仅提供音频处理与 RTMP 流媒体工具</div></div>
+</div>
+
+<!-- 短视频 -->
+<div class="page" id="p-works">
+  <div class="grid g4" style="margin-bottom:18px">
+    <div class="stat"><div><div class="muted">已完成</div><div class="n" id="wk-done">0</div></div><div class="ic" style="background:#e7f6ee">✅</div></div>
+    <div class="stat"><div><div class="muted">待完成</div><div class="n">0</div></div><div class="ic" style="background:#fdf3e0">🕐</div></div>
+    <div class="stat"><div><div class="muted">排队中</div><div class="n">0</div></div><div class="ic" style="background:#eef0fb">↕</div></div>
+    <div class="stat"><div><div class="muted">进行中</div><div class="n" id="wk-run">0</div></div><div class="ic" style="background:#eef0fb">❄</div></div></div>
+  <!-- [短视频接入 2026-09-20] 本地实时渲染录制,统计接真;原"生成管线待接入"口径随实装移除 -->
+  <div class="note" style="margin:-6px 0 18px">ⓘ 短视频为本地离线渲染：合成语音+逐帧推理，短文案约 1-3 分钟，完成后自动入库可播放</div>
+  <div class="card"><div class="hd"><div class="l"><span class="dot"></span>我的作品</div><span class="muted" style="cursor:pointer" onclick="renderWorks()">⟳</span></div>
+    <div class="empty-dash" onclick="go('workcreate')"><div style="font-size:26px">＋</div>快速创建</div>
+    <div class="grid g4" id="works-grid"></div>
+    <div class="empty-c" id="works-empty" style="display:none"><div style="width:56px;height:56px;border-radius:14px;background:#eef0fb;display:flex;align-items:center;justify-content:center;font-size:24px">🗓</div><div class="muted">暂无作品</div><button class="btn" onclick="go('workcreate')">＋ 创建第一个作品</button></div></div>
+</div>
+
+<!-- 模特管理 -->
+<div class="page" id="p-model">
+  <div class="card">
+    <div class="hd"><div style="display:flex;gap:12px;align-items:center"><div style="width:38px;height:38px;border-radius:12px;background:#eef0fb;display:flex;align-items:center;justify-content:center">👤</div>
+      <div style="font-size:18px;font-weight:700">模特管理</div><span class="pill" style="cursor:default">🗂 模特资源：<b id="model-n">-</b></span></div>
+      <!-- T-048(R-1C-010): 删除隐藏的重复"新增模特"按钮(display:none 死控件) -->
+      <button class="btn" onclick="trainMode(0)">＋ 新增模特</button></div>
+    <!-- T-019(R-1B-014): zip 导入/扣绿幕仍待接入;新增模特走「一键训练」(2026-09-20 已接线) -->
+    <div class="note">ⓘ 待接入：模特 zip 资源包导入与扣绿幕处理；新增模特请点右上「＋ 新增模特」上传视频训练</div>
+    <div class="grid g4" id="model-grid"></div></div>
+</div>
+
+<!-- 声音管理 -->
+<div class="page" id="p-voice">
+  <div class="card">
+    <div class="hd"><div style="display:flex;gap:12px;align-items:center"><div style="width:38px;height:38px;border-radius:12px;background:#eef0fb;display:flex;align-items:center;justify-content:center">🎙</div>
+      <div style="font-size:18px;font-weight:700">声音管理</div><span class="pill" style="cursor:default">🗂 声音资源：<b id="voice-n">-</b></span></div>
+      <button class="btn" onclick="trainMode(1)">＋ 新增声音</button></div>
+    <!-- T-019(R-1B-014): zip 导入仍待接入;新增声音走「一键训练」(2026-09-20 已接线) -->
+    <div class="note">ⓘ 待接入：声音 zip 资源包导入；新增声音请点右上「＋ 新增声音」上传录音+参考文本克隆</div>
+    <div class="grid g4" id="voice-grid"></div></div>
+</div>
+
+<!-- 大模型设置 -->
+<div class="page" id="p-llm">
+  <div class="card">
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:6px"><div style="width:38px;height:38px;border-radius:12px;background:#eef0fb;display:flex;align-items:center;justify-content:center">⚙</div>
+      <div style="font-size:17px;font-weight:700">大模型设置</div></div>
+    <div class="muted" style="font-size:13px;margin-bottom:16px">前往 <a href="#" onclick="toast('DeepSeek 开放平台：platform.deepseek.com/api_keys')" style="color:var(--accent)">DeepSeek 开放平台</a>（网址见弹窗，不跳转）<!-- T-054(R-1C-017): 选明示方案 --> 获取 API Key。模型可从推荐项中选择，也可直接输入</div>
+    <div style="font-weight:600;font-size:13px;margin-bottom:10px">模型提供商</div>
+    <div class="tabs" id="prov"><span class="tb on">DeepSeek</span><span class="tb">智谱 AI</span><span class="tb">MiniMax</span><span class="tb">火山方舟</span><span class="tb">千问</span><span class="tb">百度千帆</span><span class="tb">讯飞 MaaS</span><span class="tb">OpenAI</span><span class="tb">硅基流动</span></div>
+    <div style="font-weight:600;font-size:13px;margin:16px 0 8px">模型</div>
+    <input type="text" id="llm-model" value="deepseek-chat">
+    <div style="display:flex;gap:8px;align-items:center;margin:8px 0 14px"><span class="muted" style="font-size:12px">推荐</span>
+      <span class="pill" style="cursor:pointer" onclick="document.getElementById('llm-model').value='deepseek-v4-flash'">deepseek-v4-flash</span>
+      <span class="pill" style="cursor:pointer" onclick="document.getElementById('llm-model').value='deepseek-v4-pro'">deepseek-v4-pro</span></div>
+    <div style="font-weight:600;font-size:13px;margin-bottom:8px">APIKey</div>
+    <input type="password" id="llm-key" placeholder="请输入APIKey">
+    <button class="btn" style="margin-top:14px" onclick="saveLLM()">保存设置</button></div>
+  <div class="card">
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:6px"><div style="width:38px;height:38px;border-radius:12px;background:#eef0fb;display:flex;align-items:center;justify-content:center">🎧</div>
+      <div style="font-size:17px;font-weight:700">MiniMax 设置</div></div>
+    <div class="muted" style="font-size:13px;margin-bottom:16px">进入 <a href="#" onclick="toast('MiniMax 接口密钥：platform.minimaxi.com')" style="color:var(--accent)">MiniMax 接口密钥</a>（网址见弹窗，不跳转）<!-- T-054(R-1C-017): 选明示方案 --> 注册，创建并获取密钥。进入账户信息获取 groupID，注册赠送15元，<a href="#" onclick="toast('收费标准见 MiniMax 平台')" style="color:var(--accent)">点击查看收费标准</a>（说明见弹窗）。支持40种全球广泛使用的语言，<a href="#" onclick="toast('支持语言见 MiniMax 平台')" style="color:var(--accent)">点击查看支持语言</a>（说明见弹窗）</div>
+    <!-- T-020(R-1B-015): 声音克隆管线待接入、保存仅本地明示 -->
+    <div class="note">ⓘ 声音克隆管线待接入：MiniMax 设置当前仅本地保存，不会发起声音克隆调用</div>
+    <div style="font-weight:600;font-size:13px;margin-bottom:8px">模型</div>
+    <select><option>speech-2.6-turbo（极速版，更快更优惠，更适用于语音聊天和数字人场景）</option><option>speech-2.6-hd（高清版）</option></select>
+    <div style="font-weight:600;font-size:13px;margin:14px 0 8px">GroupID</div>
+    <input type="text" placeholder="请输入GroupID">
+    <div style="font-weight:600;font-size:13px;margin:14px 0 8px">APIKey</div>
+    <textarea placeholder="请输入APIKey"></textarea>
+    <button class="btn" style="margin-top:14px" onclick="saveMiniMax()">保存设置</button></div>
+</div>
+
+<!-- 云算力 -->
+<div class="page" id="p-cloud">
+  <div class="card">
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:6px"><div style="width:38px;height:38px;border-radius:12px;background:#eef0fb;display:flex;align-items:center;justify-content:center">☁</div>
+      <div style="font-size:17px;font-weight:700">云算力</div><span class="tagoff">统一云算力</span></div>
+    <div class="muted" style="font-size:13px">云端GPU算力资源 · 开启后App可使用云算力功能，默认关闭</div></div>
+  <div class="card"><div class="hd"><div class="l"><span class="dot"></span>云算力设备</div><span class="tagok">本机 GPU 在线</span></div>
+    <div class="stat3">
+      <div class="stat"><div><div class="muted">设备</div><div class="n" style="font-size:15px" id="cloud-gpu">本机显卡</div></div><div class="ic" style="background:#eef0fb">🖥</div></div>
+      <!-- T-024(R-1C-006): 显存去伪数值(原为编造的固定假值),改待探测;不加探测端点(不走 C3) -->
+      <div class="stat"><div><div class="muted">显存</div><div class="n" style="font-size:15px" id="cloud-vram">待探测</div></div><div class="ic" style="background:#eef0fb">▤</div></div>
+      <div class="stat"><div><div class="muted">云算力状态</div><div class="n" style="font-size:15px">未启用</div></div><div class="ic" style="background:#fdf3e0">☁</div></div></div>
+    <div class="row"><div style="flex:1"><div class="kv"><div class="k">统一云算力</div><div class="d">开启后使用统一云算力，关闭后使用现有自建云算力</div></div></div><div class="toggle" onclick="this.classList.toggle('on');toast('本地版以本机 GPU 运行，云算力开关仅作展示')"></div></div>
+    <div class="note">ⓘ 直播电脑推荐12代cpu，英伟达3060以上显卡；直播电脑无需显卡，一般电脑均可直播（观看端）</div></div>
+  <div class="card"><div class="hd"><div class="l"><span class="dot"></span>算力卡</div><button class="btn ghost" onclick="toast('算力卡由平台方发放，本地版暂无兑换通道')">管理算力卡</button></div>
+    <div class="empty-c" style="padding:22px 0"><div style="font-size:26px">🎟</div><div class="muted">暂未开通云算力服务~</div></div>
+    <div class="row"><label>算力兑换码</label><input type="text" placeholder="请输入算力兑换码"><button class="btn" onclick="toast('本地版暂无兑换通道')">使用算力卡</button></div></div>
+</div>
+
+<!-- 模块管理 -->
+<div class="page" id="p-modules">
+  <div class="card">
+    <div style="display:flex;gap:12px;align-items:center"><div style="width:38px;height:38px;border-radius:12px;background:#eef0fb;display:flex;align-items:center;justify-content:center">▦</div>
+      <div style="font-size:17px;font-weight:700">模块管理</div></div>
+    <div class="muted" style="font-size:13px;margin-top:4px">配置和管理功能模块</div></div>
+  <div class="card"><div class="hd"><div class="l"><span class="dot"></span>已内置模块</div></div>
+    <div class="grid" style="gap:12px">
+      <div class="mod"><div><div style="font-weight:600">实时推理模块</div><div class="muted" style="font-size:12px;margin-top:4px">数字人实时渲染与驱动（本地 GPU）</div></div><span class="tagok">已启用</span></div>
+      <div class="mod"><div><div style="font-weight:600">语音合成模块（TTS）</div><div class="muted" style="font-size:12px;margin-top:4px">文本转语音，支持克隆音色</div></div><span class="tagok">已启用</span></div>
+      <div class="mod"><div><div style="font-weight:600">流媒体模块（SRS）</div><div class="muted" style="font-size:12px;margin-top:4px">RTMP/WebRTC 推拉流服务</div></div><span class="tagok">已启用</span></div>
+      <!-- [训练接入 2026-09-20] 训练页已接线本地资产训练管线(模特视频/声音录音),标签改"已启用"(口径随实装更新) -->
+      <div class="mod"><div><div style="font-weight:600">训练模块</div><div class="muted" style="font-size:12px;margin-top:4px">模特/声音一键训练（本地资产制备）</div></div><span class="tagok">已启用</span></div>
+      <div class="mod"><div><div style="font-weight:600">知识库模块</div><div class="muted" style="font-size:12px;margin-top:4px">建议开启智能互动，完善自定义知识库</div></div><span class="tagoff">待接入</span></div></div>
+    <div class="note">ⓘ 训练已接入本地管线：模特（上传视频）/声音（上传录音+参考文本）一键训练；版本矩阵/精度档维度仍待接入</div></div>
+</div>
+
+<!-- 训练（新增模特/声音） -->
+<div class="page" id="p-train">
+  <div class="card">
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:4px"><div style="width:38px;height:38px;border-radius:12px;background:#eef0fb;display:flex;align-items:center;justify-content:center">🧬</div>
+      <div style="font-size:17px;font-weight:700">一键训练</div></div>
+    <div class="muted" style="font-size:13px;margin-bottom:14px">训练视频：如果设备有6张显卡，显卡编号从0-5，多张显卡会同时训练；只有一张显卡时编号默认为0</div>
+    <div style="font-weight:600;font-size:13px;margin-bottom:8px">训练类型</div>
+    <div class="tabs" id="traintab"><span class="tb on">数字人模特</span><span class="tb">克隆声音</span></div>
+    <!-- T-012(R-1B-007): 版本矩阵/精度档/部署维度禁用+待接入明示 -->
+    <div style="font-weight:600;font-size:13px;margin:16px 0 8px">训练版本矩阵 / 精度档 <span class="tagoff">待接入</span></div>
+    <select disabled><option>版本矩阵与极速/高精精度档选择待接入（当前使用本地训练管线默认版本）</option></select>
+    <div class="note">ⓘ 原版支持多训练版本与精度档、独立部署流程；本地版训练管线接入前此维度不可配置</div>
+    <div class="row"><label>资源名称</label><input id="train-name" placeholder="留空自动编号；如：我的主播形象" style="flex:1"></div>
+    <div style="font-weight:600;font-size:13px;margin:16px 0 8px">参考文本（可选，留空自动识别）</div>
+    <textarea id="train-refer" rows="2" style="width:100%;border:1px solid #e2e4f0;border-radius:8px;padding:8px;font-size:13px" placeholder="留空则自动识别录音内容；识别不准时可在此手动纠正"></textarea>
+    <div style="font-weight:600;font-size:13px;margin:16px 0 8px">上传素材</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <label class="btn ghost" style="cursor:pointer">⬆ 上传视频<input type="file" accept="video/mp4" style="display:none" onchange="trainUpload(this,'model')"></label>
+      <label class="btn ghost" style="cursor:pointer">⬆ 上传图片<input type="file" accept="image/jpeg,image/png,image/gif" style="display:none" onchange="trainUpload(this,'image')"></label>
+      <label class="btn ghost" style="cursor:pointer">⬆ 上传录音<input type="file" accept="audio/mpeg,audio/wav" style="display:none" onchange="trainUpload(this,'voice')"></label></div>
+    <div class="note">ⓘ 视频支持 mp4（≤500MB）；音频支持 mp3/wav（≤50MB）；图片训练暂未接入</div>
+    <div class="row"><div style="flex:1"><div class="kv"><div class="k">显卡编号</div><div class="d">多张显卡会同时训练</div></div></div><div class="stepper"><span onclick="step('gidx',-1)">−</span><input id="gidx" value="0"><span onclick="step('gidx',1)">＋</span></div></div>
+    <div class="row"><div style="flex:1"><div class="kv"><div class="k">训练状态</div><div class="d" id="train-st">等待训练</div></div></div>
+      <button class="btn" onclick="startTrain()">开始训练</button></div>
+    <div id="train-log" style="margin-top:10px;font-size:12px;color:#666;background:#fafafd;border:1px solid #e6e8f4;border-radius:8px;padding:10px;white-space:pre-wrap;max-height:180px;overflow-y:auto"></div></div>
+  <div class="card"><div class="hd"><div class="l"><span class="dot"></span>驱动模式说明</div></div>
+    <div class="kv" style="margin-bottom:10px"><div class="k">实时驱动</div><div class="d">实时驱动适用于：实时驱动电脑直播，短视频，实时驱动APP直播。</div></div>
+    <div class="kv"><div class="k">普通驱动</div><div class="d">普通驱动适用于：普通驱动电脑直播，短视频。（需先在克隆端克隆数字人）</div></div></div>
+</div>
+
+<!-- 新建直播向导（全屏） -->
+<div class="page" id="p-livecreate">
+  <div class="backbar"><span style="cursor:pointer;color:var(--accent)" onclick="go('dash')">‹ 返回</span><b>新建直播</b></div>
+  <div style="padding:22px 26px;max-width:900px">
+    <div class="card">
+      <div style="font-weight:600;font-size:13px;margin-bottom:8px">直播名称</div>
+      <input type="text" id="lc-name" value="未命名直播">
+      <div style="font-weight:600;font-size:13px;margin:16px 0 8px">直播平台</div>
+      <select id="lc-p"><option>抖音</option><option>视频号</option><option>淘宝</option></select>
+      <div class="note">ⓘ 平台说明：本地版经本地 RTMP 流媒体推流开播（见「工具」页），平台选择作为直播信息保存；原版其余平台（快手/美团/京东/拼多多/小红书/百度直播/bilibili/TikTok/Shopee/阿里国际站/YouTube）规划中</div>
+      <div style="font-weight:600;font-size:13px;margin:16px 0 8px">直播类型</div>
+      <div class="tabs" id="lc-type"><span class="tb on">数字人直播</span><span class="tb" style="opacity:.5;cursor:not-allowed" onclick="toast('双人数字人待接入，当前仅支持数字人直播')">双人数字人 <span class="tagoff">待接入</span></span></div><!-- T-025(R-1C-008): 双人 tab 置灰+待接入角标,替换描述假功能的 toast -->
+      <div class="note">ⓘ 类型说明：当前支持数字人直播（实时驱动）；实景直播、视频直播、智能录播、智能助播规划中</div>
+      <div style="font-weight:600;font-size:13px;margin:16px 0 8px">请选择数字人</div>
+      <select id="lc-m"></select>
+      <div style="font-weight:600;font-size:13px;margin:16px 0 8px">主播音色设置</div>
+      <select id="lc-v"></select>
+      <!-- T-025(R-1C-008): 音色模式 toggle 移除(本地无系统音色概念,假开关不保留) -->
+      <div style="font-weight:600;font-size:13px;margin:16px 0 8px">请选择背景</div>
+      <div style="display:flex;gap:10px;align-items:center"><label class="btn ghost" style="cursor:pointer">⬆ 上传背景图片/视频<input type="file" accept="image/jpeg,image/png,video/mp4" style="display:none" onchange="toast('背景已选择：'+this.files[0].name+'（背景上传待接入，暂不生效）')"></label><span class="muted" style="font-size:12px">背景要求1080*1920分辨率；实时驱动暂不支持设置背景</span></div>
+      <div style="font-weight:600;font-size:13px;margin:16px 0 8px">驱动模式</div>
+      <div class="tabs" id="lc-drive"><span class="tb on">实时驱动</span><span class="tb" style="opacity:.5;cursor:not-allowed" onclick="toast('普通驱动待接入，当前仅支持实时驱动')">普通驱动（需先在克隆端克隆数字人） <span class="tagoff">待接入</span></span></div><!-- T-025(R-1C-008): 普通驱动 tab 置灰+待接入角标 -->
+      <div style="font-weight:600;font-size:13px;margin:16px 0 8px">带货品类 / 直播模式 / 直播语言</div>
+      <div class="note" style="margin-top:0">ⓘ 规划中：带货品类、直播模式（常规/AI自动播）与多语言直播配置域待接入</div>
+      <div style="font-weight:600;font-size:13px;margin:16px 0 8px">产品 / 话术 / 互动规则</div>
+      <div class="note" style="margin-top:0">ⓘ 待接入：原版向导的选品、话术编排与互动规则步骤将在后续版本开放，当前向导为单页简化流程</div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px"><button class="btn ghost" onclick="go('dash')">取消</button><button class="btn" onclick="lcNext()">下一步</button></div></div></div>
+</div>
+
+<!-- 开播控制台（全屏） -->
+<div class="page" id="p-studio">
+  <div class="backbar"><span style="cursor:pointer;color:var(--accent)" onclick="stBack()">‹ 返回</span><b>开播控制台 — <span id="st-name">-</span></b><span class="tagoff" id="st-badge" style="margin-left:auto">待开播</span></div><!-- T-053(R-1C-016): 在播中返回弹确认 -->
+  <div style="padding:22px 26px">
+    <div class="card" id="st-check">
+      <div class="l" style="display:flex;gap:8px;font-weight:600;font-size:15px;margin-bottom:10px"><span class="dot red"></span>开播前安全检测</div>
+      <div class="muted" style="font-size:12px;margin-bottom:8px">逐项确认后即可开播</div>
+      <div class="chk"><input type="checkbox" checked> 直播伴侣一直可见，不被遮挡！</div>
+      <div class="chk"><input type="checkbox" checked> 屏幕缩放比例需100%，否则风险防护失效</div>
+      <div class="chk"><input type="checkbox"> 已在直播伴侣选择虚拟摄像头并完成画面接入</div>
+      <div class="chk"><input type="checkbox"> 扬声器/收音链路已确认（避免违规提醒进入直播间）</div>
+      <div class="note">⚠ 主播话术和回复将自动过滤下方保存的违禁词（竖杠分割，例如 最好|顶级）；未保存违禁词时不过滤</div>
+      <div class="row"><label>违禁词</label><input type="text" id="st-bw" style="flex:1" placeholder="竖杠分割，例如：最好|顶级"></div>
+      <div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn ghost" onclick="bwSave('st-bw')">保存违禁词</button></div>
+      <div class="row"><label>数字人模特</label><select id="st-m" style="flex:1"></select></div>
+      <div class="row"><label>克隆音色</label><select id="st-v" style="flex:1"></select></div>
+      <button class="btn big" id="st-go" style="margin-top:14px" onclick="confirmGo()" disabled title="请先逐项确认上方安全检测项">确认风险并开播</button></div>
+    <div id="st-console" style="display:none">
+      <div class="card"><div style="display:flex;gap:18px;flex-wrap:wrap">
+        <div style="flex:1.4;min-width:340px"><video id="pv" autoplay muted playsinline controls></video>
+          <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap"><button class="btn" onclick="stSpeak()">说话</button><button class="btn ghost" onclick="stRec()">录制10秒</button><button class="btn danger" onclick="stStop()">下播</button></div>
+          <div id="st-info" class="muted" style="font-size:12px;margin-top:10px;white-space:pre-line"></div>
+          <div id="st-rec-link" class="note" style="display:none"></div><!-- T-078(R-3-012): 录制完成回放入口容器 --></div>
+        <div style="flex:1;min-width:280px">
+          <div style="font-weight:600;font-size:14px;margin-bottom:8px">实时话术</div>
+          <textarea id="st-text" style="min-height:90px">大家好，欢迎来到直播间。</textarea>
+          <button class="btn" style="margin-top:8px;width:100%" onclick="stSpeak()">发送</button><!-- T-077(R-3-011): 按钮文案改动作名"发送" -->
+          <div style="font-weight:600;font-size:14px;margin:16px 0 8px">定时下播</div>
+          <div style="display:flex;gap:10px;align-items:center"><div class="toggle" id="st-timer-t" onclick="this.classList.toggle('on');setTimeout(stArmTimer,50)"></div>
+            <select id="st-timer" style="width:auto"><option>30 分钟</option><option>60 分钟</option><option>120 分钟</option></select></div>
+          <div class="muted" style="font-size:12px;margin-top:6px" id="st-timer-hint">定时下播未启用（打开开关后到时自动下播）</div>
+          <div style="font-weight:600;font-size:14px;margin:16px 0 8px">真人/语音接管 · 快捷互动 · 智能防护 · 暂停恢复</div>
+          <div class="note" style="margin-top:0">ⓘ 以上互动与防护域待接入：当前版本直播中仅支持实时话术发送、录制与下播；打断防护、快捷回复、麦克风/语音接管、暂停恢复暂不可用</div>
+          <div style="font-weight:600;font-size:14px;margin:16px 0 8px">弹幕消息</div>
+          <div class="chat" style="min-height:120px;max-height:180px" id="st-danmu"><div class="bub ai" style="font-size:12px">弹幕互动模块待接入本地互动管线（弹幕配置域——平台接入/关键词配置亦待接入）</div></div><!-- T-015(R-1B-010): 补配置域待接入明示 --></div></div></div></div></div>
+</div>
+
+<!-- 作品创作（全屏） -->
+<div class="page" id="p-workcreate">
+  <div class="backbar"><span style="cursor:pointer;color:var(--accent)" onclick="go('works')">‹ 返回</span><b>创建短视频</b></div>
+  <div style="padding:22px 26px;max-width:900px">
+    <div class="card">
+      <div style="font-weight:600;font-size:13px;margin:16px 0 8px">文案</div>
+      <textarea id="wc-text" placeholder="在此输入文本，保存发布即可生成短视频" style="min-height:110px"></textarea>
+      <div style="display:flex;gap:10px;margin-top:8px"><button class="btn ghost" onclick="copyWcText()">复制文案</button><!-- T-050(R-1C-012): 行内 writeText 链收敛为具名函数(promise 链含 catch 静态可验),行为等价 --><span class="muted" style="font-size:12px;align-self:center">建议详细描述模特的动作，表情和场景，以获得更稳定的生成效果</span></div>
+      <div class="row"><label>数字人模特</label><select id="wc-m" style="flex:1"></select></div>
+      <div class="row"><label>克隆音色</label><select id="wc-v" style="flex:1"></select></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px"><button class="btn" onclick="wcGen()">开始生成</button></div>
+      <div id="wc-prog" style="display:none;margin-top:16px">
+        <div style="display:flex;gap:8px" id="wc-steps"><span class="wstep">① 合成语音</span><span class="wstep">② 离线渲染</span><span class="wstep">③ 完成</span></div>
+        <div class="wbar" style="margin-top:10px"><div id="wc-bar"></div></div>
+        <div style="display:flex;justify-content:space-between;margin-top:6px"><span class="muted" id="wc-phase" style="font-size:12px"></span><b id="wc-pct" style="font-size:13px">0%</b></div>
+        <div id="wc-log" class="muted" style="font-size:12px;white-space:pre-wrap;max-height:90px;overflow-y:auto;margin-top:8px"></div></div>
+      <div class="note" id="wc-st">暂无生成记录</div></div></div>
+</div>
+
+</div><!-- main -->
+
+<div id="mask"><div id="modal"></div></div>
+<div id="toast"></div>
+<script src="/local_ui/flv.min.js"></script>
+<script>
+/* ---------- 框架 ---------- */
+const $=id=>document.getElementById(id);
+const esc=x=>String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2200)}
+/* T-048(R-1C-010/R-1B-022): 删除与启动映射重复且无引用的死哈希映射常量;路由映射收敛到启动段 ROUTE_MAP */
+const FULLSET={'livecreate':1,'studio':1,'workcreate':1};
+function go(p){document.querySelectorAll('.page').forEach(e=>e.classList.remove('on'));$('p-'+p).classList.add('on');
+  if(p!=='studio'&&window.__stPoll){clearInterval(window.__stPoll);window.__stPoll=null}
+  if(p!=='studio'&&window.__flvPlayer){try{window.__flvPlayer.destroy()}catch(e){}window.__flvPlayer=null}
+  if(p!=='guard'&&gTimer){clearInterval(gTimer);gTimer=null;const b=$('guard-run');if(b)b.textContent='⏺ 开始运行'}
+  if(p==='works')renderWorks();/* [短视频接入 2026-09-20] 作品页实时统计与列表 */
+  if(p==='workcreate')wcPrep();
+  const inv={dash:'dash',live:'live-dash',guard:'live-guard',copy:'gpt3',tool:'tool',works:'works',model:'pannel/model',voice:'pannel/voice',llm:'pannel/account',cloud:'cloud',modules:'modules',train:'train',livecreate:'live-create',studio:'live',workcreate:'work-create'};
+  location.hash='#/'+(inv[p]||'dash');
+  __lastHash=location.hash;/* T-076(R-3-010): 标记程序性跳转,hashchange 监听据此去重 */
+  if(!FULLSET[p]){document.querySelectorAll('#side .nav').forEach(e=>e.classList.toggle('on',e.dataset.p===p));}
+  if(p==='model')renderModels();if(p==='voice')renderVoices();if(p==='live')renderLives();if(p==='dash')renderDash();
+  if(p==='cloud')cloudInfo();if(p==='studio')stPrep();if(p==='livecreate')lcPrep()}
+/* T-056(R-1C-019): jf 增加 {silent:true} 选项——轮询类调用静默,失败仅页面状态呈现 */
+async function jf(u,b,opt){const o=b?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}:{};
+  let r;try{r=await fetch(u,o)}catch(e){if(!(opt&&opt.silent))toast('网络错误:'+u);return {ok:false,error:'network'}}
+  try{return await r.json()}catch(e){if(!(opt&&opt.silent))toast('服务错误 '+r.status);return {ok:false,error:'http '+r.status}}}
+/* ---------- 直播数据(本地) ---------- */
+let LIVES=[];
+const lives=()=>LIVES;
+async function loadLives(){try{const r=await jf('/api/lives');LIVES=r.items||[]}catch(e){LIVES=[]}
+  /* T-040(R-1A-010): 回退前 Array.isArray 校验并包 try,坏值不中断渲染 */
+  if(!LIVES.length){try{const bak=JSON.parse(localStorage.getItem('szr_lives_v1')||'[]');if(Array.isArray(bak)&&bak.length)LIVES=bak}catch(e){}}
+  renderDash()}
+async function saveLives(){localStorage.setItem('szr_lives_v1',JSON.stringify(LIVES));
+  /* T-051(R-1C-013): jf 不抛异常,原 try/catch 为死分支;改为检查返回值,ok:false 给专用文案 */
+  const r=await jf('/api/lives/save',{items:LIVES});
+  if(!r||r.ok===false)toast('直播列表保存到服务端失败,已本地暂存')}
+/* T-071(R-3-005): 未知 status 不渲染角标,缺失字段不渲染元信息行;T-044(R-1B-019): 补"创建"时间展示 */
+function liveCard(l,idx){const badge=(l.status==='待开播')?'<span class="badge">待开播</span>':'';
+  const meta=[l.platform,l.type].filter(x=>x!=null&&x!=='').join(' · ');
+  /* T-071(R-3-005/S2): date 段在模板体外用条件表达式构建(缺失/空值不渲染该段),模板体内不再直接内插日期转义值 */
+  const dateHtml=(l.date!=null&&l.date!=='')?'<div style="margin-top:2px;opacity:.8">创建 '+esc(l.date)+'</div>':'';
+  return `<div class="thumb">
+  ${badge}
+  <div class="ops"><span onclick="event.stopPropagation();editLive(${lives().indexOf(l)})">✎</span><span onclick="event.stopPropagation();delLive(${lives().indexOf(l)})">🗑</span></div>
+  <button class="golive" onclick="event.stopPropagation();openStudio(${lives().indexOf(l)})">📹 实时开播</button>
+  <div class="meta"><div style="font-size:13px;font-weight:600">${esc(l.name)}</div>${meta?`<div style="margin-top:2px">${esc(meta)}</div>`:''}${dateHtml}</div></div>`}
+function renderDash(){const ls=lives();$('dash-lives').innerHTML=ls.slice(0,4).map((l,i)=>liveCard(l,i)).join('')||'<div class="muted" style="font-size:13px">暂无直播，点击右上角"新建直播"创建</div>';renderLives()}
+function renderLives(){if(!$('live-grid'))return;const q=($('lq').value||'').trim();const f=$('pf').value;let ls=lives();
+  if(q)ls=ls.filter(l=>l.name.includes(q));if(f&&f!=='全部平台')ls=ls.filter(l=>l.platform===f);
+  /* T-052(R-1C-014): 空态显隐与计数改用过滤后 ls(原用全量 lives(),搜索无结果时不显空态) */
+  $('live-n').textContent='('+ls.length+')';
+  /* T-071(R-3-005/S3): 渲染路径最小截断(前 200 条,不做完整分页);卡片定位仍用全量下标(T-001),截断不影响编辑/删除/开播正确性 */
+  const shown=ls.slice(0,200);
+  $('live-grid').innerHTML=shown.map(l=>liveCard(l,lives().indexOf(l))).join('')+(ls.length>shown.length?`<div class="muted" style="grid-column:1/-1;font-size:12px">仅显示前 ${shown.length} 条（共 ${ls.length} 条）</div>`:'');
+  $('live-empty').style.display=ls.length?'none':'flex'}
+function newLive(){$('modal').innerHTML=`<h3>新建直播</h3>
+  <div class="muted" style="font-size:12px;margin-bottom:14px">创建一个本地直播任务，选择平台与数字人配置</div>
+  <div style="font-size:13px;margin-bottom:6px">直播名称</div><input id="ml-n" type="text" value="未命名直播">
+  <div style="font-size:13px;margin:12px 0 6px">直播平台</div><select id="ml-p"><option>抖音</option><option>视频号</option><option>淘宝</option></select>
+  <div style="font-size:13px;margin:12px 0 6px">直播类型</div><select><option>数字人直播</option></select>
+  <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px"><button class="btn ghost" onclick="maskOff()">取消</button><button class="btn" onclick="createLive()">创建</button></div>`;$('mask').classList.add('show')}
+function createLive(){const ls=lives();const d=new Date();const pad=n=>String(n).padStart(2,'0');
+  ls.unshift({name:$('ml-n').value||'未命名直播',platform:$('ml-p').value,type:'数字人直播',status:'待开播',date:`${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`});
+  saveLives();maskOff();renderDash();toast('已创建')}
+function editLive(i){const ls=lives();$('modal').innerHTML=`<h3>编辑直播</h3>
+  <div style="font-size:13px;margin-bottom:6px">直播名称</div><input id="ml-n" type="text">
+  <div style="font-size:13px;margin:12px 0 6px">直播平台</div><select id="ml-p">${['抖音','视频号','淘宝'].map(p=>`<option ${ls[i].platform===p?'selected':''}>${p}</option>`).join('')}</select>
+  <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px"><button class="btn ghost" onclick="maskOff()">取消</button><button class="btn" onclick="saveEdit(${i})">保存</button></div>`;
+  document.getElementById('ml-n').value=ls[i].name;$('mask').classList.add('show')}
+function saveEdit(i){const ls=lives();ls[i].name=$('ml-n').value.trim()||ls[i].name;ls[i].platform=$('ml-p').value;saveLives();maskOff();renderDash();toast('已保存')}
+function delLive(i){if(!confirm('此操作将永久删除该直播, 是否继续?'))return;const ls=lives();ls.splice(i,1);saveLives();renderDash();toast('已删除')}/* T-044(R-1B-019): 确认文案对齐原版 */
+function maskOff(){$('mask').classList.remove('show')}
+$('mask').addEventListener('click',e=>{if(e.target.id==='mask')maskOff()});
+/* ---------- 实时开播(本地引擎) ---------- */
+let MODELS=[],VOICES=[];
+/* ---------- 模特/声音 ---------- */
+/* [列表化 2026-09-20] 按用户要求撤掉占位预览卡:资源以名字标识,一行一项(名称+编辑+删除) */
+function resCard(name,kind){return `<div class="card" style="padding:10px 14px;display:flex;align-items:center;gap:10px">
+  <span style="flex:1;font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(name)}">${esc(name)}</span>
+  <span class="pill res-edit" data-kind="${kind}" data-name="${esc(name)}" style="padding:5px 10px;font-size:12px;flex:none">✎ 编辑</span>
+  <span class="pill res-del" data-kind="${kind}" data-name="${esc(name)}" style="padding:5px 10px;font-size:12px;flex:none">🗑 删除</span></div>`}
+document.addEventListener('click',e=>{const t=e.target;
+  if(t.classList.contains('res-del'))delRes(t.dataset.kind,t.dataset.name);
+  else if(t.classList.contains('res-edit'))editRes(t.dataset.kind,t.dataset.name)});
+async function delRes(kind,name){if(!confirm('确定删除 '+name+' 吗?此操作不可恢复'))return;
+  const r=await jf('/api/resources/'+kind+'/delete',{name});toast(r.ok?'已删除':(r.error||'删除失败'));renderModels();renderVoices()}
+async function editRes(kind,name){const nn=prompt('重命名资源',name);if(!nn||nn===name)return;
+  const r=await jf('/api/resources/'+kind+'/rename',{old:name,new:nn.trim()});toast(r.ok?'已重命名':(r.error||'失败'));renderModels();renderVoices()}
+async function renderModels(){try{const r=await jf('/api/engine/models');MODELS=r.items||[];$('model-n').textContent=MODELS.length+'（本地目录）';
+  /* [命名训练 2026-09-20] 去掉 slice(0,8) 截断(用户新训练资源曾因此不可见),新资源排前 */
+  $('model-grid').innerHTML=[...MODELS].sort().reverse().map(m=>resCard(m,'models')).join('')}catch(e){$('model-n').textContent='-'}}
+async function renderVoices(){try{const r=await jf('/api/engine/voices');VOICES=r.items||[];$('voice-n').textContent=VOICES.length+'（本地目录）';
+  $('voice-grid').innerHTML=[...VOICES].sort().reverse().map(v=>resCard(v,'voices')).join('')}catch(e){$('voice-n').textContent='-'}}
+/* ---------- 保镖 ---------- */
+let gTimer=null;
+/* ---------- 违禁词(话术过滤,接既有 /api/engine/config) ---------- */
+async function bwLoad(){try{const r=await jf('/api/engine/config');const w=(r&&r.banned_words)||[];if(w.length){const s=w.join('|');
+  ['bw','st-bw'].forEach(id=>{const t=$(id);if(t&&!t.value)t.value=s})}}catch(e){}}
+async function bwSave(id){const el=$(id);if(!el)return;const words=el.value.split(/[|\n]/).map(x=>x.trim()).filter(Boolean);
+  const r=await jf('/api/engine/config',{banned_words:words});
+  if(r&&r.ok){const s=words.join('|');['bw','st-bw'].forEach(o=>{const t=$(o);if(t)t.value=s});
+    toast('违禁词已保存：'+(typeof r.count==='number'?r.count:words.length)+' 组')}
+  else toast((r&&r.error)||'违禁词保存失败')}
+function guardRun(){const btn=$('guard-run');const log=$('guard-log');
+  if(gTimer){clearInterval(gTimer);gTimer=null;btn.textContent='⏺ 开始运行';return}
+  btn.textContent='⏹ 取消运行';const lines=[];/* T-044(R-1B-019): 按钮文案对齐原版"取消运行" */
+  gTimer=setInterval(async()=>{try{const s=await jf('/api/engine/status',null,{silent:true});/* T-056(R-1C-019): 轮询静默,失败不弹 toast,仅日志区呈现 */
+    const head=(s&&s.ok!==false)?`引擎${s.running?'运行中':'未开播'}`:'引擎状态获取失败（服务未响应）';
+    lines.unshift(`[${new Date().toLocaleTimeString()}] ${head}（画面内容检测待接入，当前仅监测引擎状态；关键词 ${$('kw').value.split('\n').filter(Boolean).length} 组已填写（检测待接入））`);
+    if(lines.length>200)lines.pop();
+    log.innerHTML=lines.slice(0,8).map(t=>`<div style="font-size:12px;color:#555;text-align:left;width:100%">${esc(t)}</div>`).join('')}catch(e){}},3000);
+  toast('监控已启动')}
+/* ---------- 文案 ---------- */
+async function sendChat(){const t=$('prompt').value.trim();if(!t)return;const c=$('chat');
+  c.insertAdjacentHTML('beforeend','<div class="bub me"></div>');c.lastElementChild.textContent=t;$('prompt').value='';
+  c.scrollTop=c.scrollHeight;
+  let cfg=null;try{cfg=JSON.parse(localStorage.getItem('szr_llm')||'null')}catch(e){}
+  if(!cfg||!cfg.key){c.insertAdjacentHTML('beforeend','<div class="bub ai">未配置 APIKey——请到「大模型」页填入 APIKey 并保存后再试</div>');c.scrollTop=c.scrollHeight;return}
+  c.insertAdjacentHTML('beforeend','<div class="bub ai">思考中…</div>');c.scrollTop=c.scrollHeight;
+  const r=await jf('/api/llm/chat',{prompt:t,system:$('sysprompt').value.trim(),provider:cfg.provider,model:cfg.model,key:cfg.key});
+  c.lastElementChild.textContent=r.ok?r.text:('调用失败：'+(r.error||''));
+  c.scrollTop=c.scrollHeight}
+/* ---------- LLM 设置 ---------- */
+$('prov').addEventListener('click',e=>{if(e.target.classList.contains('tb')){[...$('prov').children].forEach(x=>x.classList.remove('on'));e.target.classList.add('on')}});
+function saveLLM(){localStorage.setItem('szr_llm',JSON.stringify({provider:$('prov').querySelector('.on').textContent,model:$('llm-model').value,key:$('llm-key').value}));toast('已保存（本地）')}
+function saveMiniMax(){const c=$('mask');const card=[...document.querySelectorAll('#p-llm .card')].pop();
+  const sel=card.querySelector('select'),inputs=card.querySelectorAll('input[type=text],textarea');
+  localStorage.setItem('szr_llm_minimax',JSON.stringify({model:sel?sel.value:'',group:inputs[0]?inputs[0].value:'',key:inputs[1]?inputs[1].value:''}));toast('MiniMax 设置已保存（本地）')}
+/* ---------- 工具 ---------- */
+function step(id,d){const el=$(id);const v=parseFloat(el.value);if(isNaN(v))return;el.value=(v+d).toFixed(el.value.includes('.')?2:0)}
+function copyRtmp(){navigator.clipboard.writeText($('rtmp-url').textContent).then(()=>toast('已复制')).catch(()=>toast('复制失败'))}/* T-050(R-1C-012): 补复制失败 catch */
+/* ---------- 开播控制台(全屏,真实引擎) ---------- */
+let stCtx={idx:-1},stTimer=null;/* T-057(R-1D-013): 删除行内纯死声明(旧轮询/播放器两个未用变量),实际轮询使用 window.__stPoll */
+/* [训练联动 2026-09-20] 恒定重取:原"非空即跳过"会让启动后新训练的资源(wdd/wv)进不了
+   创作页/控制台下拉(用户实报:新训练资源生成短视频报"资源不存在");本地接口零成本 */
+async function ensureResources(){try{const [m,v]=await Promise.all([jf('/api/engine/models'),jf('/api/engine/voices')]);MODELS=m.items||[];VOICES=v.items||[]}catch(e){}}
+async function openStudio(i){stCtx.idx=i;const ls=lives();await ensureResources();go('studio');$('st-name').textContent=ls[i]?esc(ls[i].name):'直播'}
+/* T-053(R-1C-016): 直播进行中返回列表需确认(返回不会自动下播) */
+async function stBack(){try{const s=await jf('/api/engine/status',null,{silent:true});
+  if(s&&s.running&&!confirm('直播仍在进行中，返回不会自动下播。确定返回直播列表吗?'))return}catch(e){}
+  go('live')}
+function stPrep(){const ls=lives();if(stCtx.idx>=0&&ls[stCtx.idx])$('st-name').textContent=ls[stCtx.idx].name;
+  const last=localStorage.getItem('szr_last_model');
+  $('st-m').innerHTML=MODELS.map(m=>`<option ${m===last?'selected':''}>${esc(m)}</option>`).join('');
+  $('st-v').innerHTML=VOICES.map(v=>`<option ${v===(localStorage.getItem('szr_last_voice')||'')?'selected':''}>${esc(v)}</option>`).join('');
+  $('st-check').style.display='block';$('st-console').style.display='none';$('st-badge').textContent='待开播';$('st-badge').className='tagoff';
+  $('st-timer-t').classList.remove('on');$('st-timer-hint').textContent='定时下播未启用（打开开关后到时自动下播）';stGoGate()}
+function stGoGate(){const cs=document.querySelectorAll('#st-check .chk input');let n=0;cs.forEach(c=>{if(c.checked)n++});$('st-go').disabled=n<cs.length}
+async function confirmGo(){const cs=document.querySelectorAll('#st-check .chk input');let n=0;cs.forEach(c=>{if(c.checked)n++});
+  if(n<cs.length){toast('请先逐项确认开播前安全检测（还有 '+(cs.length-n)+' 项未确认）');return}
+  await ensureResources();const last=localStorage.getItem('szr_last_model');
+  const m=(last&&MODELS.includes(last))?last:(MODELS[0]||''),v=VOICES[0]||'';
+  $('st-check').style.display='none';$('st-console').style.display='block';
+  const r=await jf('/api/engine/start',{model:$('st-m')?$('st-m').value:m,voice:$('st-v')?$('st-v').value:v});
+  $('st-badge').textContent=r.ok?'开播中':'开播失败';$('st-badge').className=r.ok?'tagok':'tagoff';
+  window.__stTries=0;window.__stHint=0;/* T-057(R-1D-013): 开播成功后复位"未出画"提示标记,允许下次开播再次提示 */
+  if(r.ok){if(window.__stPoll)clearInterval(window.__stPoll);window.__stPoll=setInterval(stPollLoop,4000);stPollLoop()}else toast(r.error||'开播失败')}
+async function stPollLoop(){if(!$('st-info'))return;try{const s=await jf('/api/engine/status',null,{silent:true});/* T-056(R-1C-019): 轮询静默 */
+  if(s.ok===false){$('st-info').textContent='引擎状态获取失败（'+(s.error||'未知')+'）';return}/* T-056: 失败仅页面状态条呈现 */
+  $('st-info').textContent=`引擎: ${s.running?'运行中':'未开播'}\n模特: ${s.model||'-'}  音色: ${s.voice||'-'}\nSRS: ${s.srs?'在线':'离线'}  TTS: ${s.tts?'在线':'离线'}\n流地址: ${s.stream_url||'-'}`;
+  $('st-badge').textContent=s.running?'直播中':'未开播';$('st-badge').className=s.running?'tagok':'tagoff';
+  window.__stTries=(window.__stTries||0)+1;
+  if(s.running&&window.__flvPlayer&&$('pv').videoWidth>0){localStorage.setItem('szr_last_model',s.model||'');localStorage.setItem('szr_last_voice',s.voice||'')}
+  /* T-070(R-3-004): 开播后轮询 status(stream_url/画面帧)探测,无流/无画面显式"未出画"告警 */
+  if(s.running&&window.__stTries>5&&($('pv').videoWidth===0||!s.stream_url)){
+    if(window.__flvPlayer){try{window.__flvPlayer.destroy()}catch(e){}window.__flvPlayer=null}
+    if(!window.__stHint){window.__stHint=1;$('st-info').textContent+='\n⚠ 未出画告警：引擎已开播但画面未建立（推流就绪约需 8~16 秒；超过 30 秒仍无画面，该模特资源可能不完整，请更换模特重试）'}}
+  if(s.running&&window.flvjs&&!window.__flvPlayer){
+    if(flvjs.isSupported()){
+      (async()=>{
+        try{
+          const pt=s.ports||{};const sr=await fetch('http://127.0.0.1:'+(pt.api||4085)+'/api/v1/streams/').then(r=>r.json());/* T-055(R-1C-018): 回退常量改重建版 4085 */
+          const cands=(sr.streams||[]).filter(x=>x.name&&!x.name.includes('.flv'));
+          if(!cands.length){return}
+          const url='http://127.0.0.1:'+(pt.http||3189)+'/'+cands[0].app+'/'+cands[0].name+'.flv';/* T-055(R-1C-018): 回退常量改重建版 3189 */
+          window.__flvPlayer=flvjs.createPlayer({type:'flv',isLive:true,url:url},{enableStashBuffer:false,liveBufferLatencyChasing:true});
+          window.__flvPlayer.attachMediaElement($('pv'));window.__flvPlayer.load();window.__flvPlayer.play().catch(()=>{});
+        }catch(e){toast('拉流地址探测失败:'+e)}
+      })();
+    }else{toast('当前浏览器不支持 MSE 播放')}}
+}catch(e){}}
+async function stSpeak(){const r=await jf('/api/engine/speak',{text:$('st-text').value});if(r.ok){$('st-text').value=''}else toast(r.error||'说话失败')}/* T-077(R-3-011): 发送成功后清空输入框 */
+async function stRec(){const r=await jf('/api/engine/record',{seconds:10});
+  /* T-078(R-3-012): 录制完成给可点击"查看录制"回放入口;失败给出原因 */
+  if(r.ok){const v=$('pv');v.srcObject=null;v.src=r.url+'?t='+Date.now();v.play();toast('录制完成');
+    const rl=$('st-rec-link');if(rl){rl.style.display='block';rl.innerHTML='ⓘ 录制完成，<a href="'+esc(r.url||'/media/live_rec.mp4')+'" target="_blank" style="color:var(--accent)">查看录制</a>'}}
+  else toast('录制失败：'+(r.error||'未知原因'))}
+async function stStop(){await jf('/api/engine/stop',{});if(stTimer){clearTimeout(stTimer);stTimer=null}if(window.__stPoll){clearInterval(window.__stPoll);window.__stPoll=null}if(window.__flvPlayer){try{window.__flvPlayer.destroy()}catch(e){}window.__flvPlayer=null}window.__stTries=0;stPollLoop();toast('已下播')}
+function stArmTimer(){if($('st-timer-t').classList.contains('on')){const mins=parseInt(($('st-timer').value||'30'))||30;
+  if(stTimer)clearTimeout(stTimer);stTimer=setTimeout(()=>{stStop();toast('定时下播：已到时自动下播');$('st-timer-hint').textContent='已到时：已自动执行下播'},mins*60000);
+  $('st-danmu').insertAdjacentHTML('beforeend',`<div class="bub ai" style="font-size:12px">[定时] 将在 ${mins} 分钟后自动下播</div>`);
+  $('st-timer-hint').textContent='已启用：将在 '+mins+' 分钟后自动下播'}
+  else if(stTimer){clearTimeout(stTimer);stTimer=null;
+  $('st-danmu').insertAdjacentHTML('beforeend','<div class="bub ai" style="font-size:12px">[定时] 已取消定时下播</div>');
+  $('st-timer-hint').textContent='定时下播未启用（打开开关后到时自动下播）'}
+  else{$('st-timer-hint').textContent='定时下播未启用（打开开关后到时自动下播）'}}
+/* ---------- 新建直播向导 ---------- */
+async function lcPrep(){await ensureResources();$('lc-m').innerHTML=MODELS.map(m=>`<option>${esc(m)}</option>`).join('');$('lc-v').innerHTML=VOICES.map(v=>`<option>${esc(v)}</option>`).join('');const last=localStorage.getItem('szr_last_model');if(last&&MODELS.includes(last))$('lc-m').value=last}
+async function lcNext(){const ls=lives();const d=new Date();const pad=n=>String(n).padStart(2,'0');
+  ls.unshift({name:$('lc-name').value||'未命名直播',platform:$('lc-p').value,type:'数字人直播',status:'待开播',date:`${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`});
+  if(ls.length>500){ls.length=500;toast('直播列表超过服务端500条上限，已截断保存最近500条')}
+  await saveLives();renderDash();go('studio');stCtx.idx=0;$('st-name').textContent=ls[0].name;
+  /* T-025(R-1C-008/R-1B-006): 向导所选模特/音色写入控制台 st-m/st-v(stPrep 默认选中记忆值/首项,此处覆盖为向导选择) */
+  const setSel=(sel,v)=>{if(sel&&v){[...sel.options].forEach(o=>{if(o.textContent===v)sel.value=o.textContent})}};
+  setSel($('st-m'),$('lc-m').value);setSel($('st-v'),$('lc-v').value)}
+/* ---------- 训练(已接线本地训练管线 2026-09-20: /api/train/upload|start|status) ---------- */
+const trainCtx={file:null,timer:null};
+function trainType(){return $('traintab').children[1].classList.contains('on')?1:0}
+function trainMode(i){go('train');const tb=$('traintab');[...tb.children].forEach((x,k)=>x.classList.toggle('on',k===i))}
+$('traintab').addEventListener('click',e=>{if(e.target.classList.contains('tb')){[...$('traintab').children].forEach(x=>x.classList.remove('on'));e.target.classList.add('on')}});
+async function trainUpload(el,kind){
+  const f=el.files&&el.files[0];el.value='';if(!f)return;
+  if(kind==='image'){toast('图片训练暂未接入本地训练管线（当前支持视频/录音）');return}
+  $('train-st').textContent='上传中：'+f.name;
+  try{
+    const fd=new FormData();fd.append('kind',kind);fd.append('file',f);
+    const r=await fetch('/api/train/upload',{method:'POST',body:fd});const j=await r.json();
+    if(!j.ok){toast('上传失败：'+(j.error||'未知错误'));$('train-st').textContent='等待训练';return}
+    trainCtx.file={path:j.path,name:j.name,kind};
+    $('train-st').textContent='已上传：'+j.name+'（'+(j.size/1048576).toFixed(1)+'MB，未开始训练）';
+    toast('素材已上传：'+j.name);
+  }catch(e){toast('上传失败：'+e);$('train-st').textContent='等待训练'}}
+async function startTrain(){
+  if(trainCtx.timer){toast('训练进行中，请稍候');return}
+  if(!trainCtx.file){toast('请先上传素材（视频或录音）');return}
+  const type=trainType()===0?'model':'voice';
+  if(trainCtx.file.kind!==type){toast('素材与训练类型不符：请上传'+(type==='model'?'视频':'录音'));return}
+  const refer=$('train-refer').value.trim();/* 可选:留空由服务端 FunASR 自动转写 */
+  let j;try{
+    const r=await fetch('/api/train/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type,path:trainCtx.file.path,refer_text:refer,name:$('train-name').value.trim()})});
+    j=await r.json();
+  }catch(e){toast('无法开始训练：'+e);return}
+  if(!j.ok){toast('无法开始训练：'+(j.error||''));return}
+  toast('训练已启动：'+j.uid);trainCtx.file=null;
+  clearInterval(trainCtx.timer);trainCtx.timer=setInterval(trainPoll,1000);trainPoll()}
+async function trainPoll(){
+  let j;try{const r=await fetch('/api/train/status');j=await r.json()}catch(e){return}
+  const st=$('train-st'),lg=$('train-log');
+  if(j.running){st.textContent='正在训练（'+(j.stage||'')+'）：'+(j.uid||'');lg.textContent=(j.log||[]).join('\n');lg.scrollTop=lg.scrollHeight;return}
+  if(j.error){st.textContent='训练失败：'+j.error;lg.textContent=(j.log||[]).join('\n');clearInterval(trainCtx.timer);trainCtx.timer=null;return}
+  if(j.uid&&(j.log||[]).some(l=>l.includes('训练完成'))){st.textContent='训练完成：'+j.uid+' 已入列';lg.textContent=(j.log||[]).join('\n');clearInterval(trainCtx.timer);trainCtx.timer=null;toast('训练完成：'+j.uid);
+    /* [训练联动 2026-09-20] 清缓存,模特/声音/创作页/控制台下次进入即重取新资源 */
+    MODELS=[];VOICES=[];ensureResources();return}
+  if((j.log||[]).length){lg.textContent=j.log.join('\n')}}
+/* 页面打开时若已有训练在跑,自动恢复轮询 */
+(async()=>{try{const r=await fetch('/api/train/status');const j=await r.json();if(j.running){clearInterval(trainCtx.timer);trainCtx.timer=setInterval(trainPoll,1000);trainPoll()}}catch(e){}})();
+/* ---------- 作品创作 ---------- */
+function copyWcText(){navigator.clipboard.writeText(document.getElementById('wc-text').value).then(()=>toast('已复制文案')).catch(()=>toast('复制失败'))}/* T-050(R-1C-012): 复制文案统一走具名函数,writeText 恒带失败 catch */
+/* ---------- 短视频生成(已接线本地渲染管线 2026-09-20: /api/works/*) ---------- */
+async function wcPrep(){await ensureResources();const lm=localStorage.getItem('szr_last_model')||'',lv=localStorage.getItem('szr_last_voice')||'';
+  /* [联动修复 2026-09-20] 重建前记住当前选择,重建后还原——原实现把用户已选的
+     wdd/wv 重置回默认第一项(wcGen 内部也调本函数,提交值被偷换致"资源不存在") */
+  const pm=$('wc-m').value,pv=$('wc-v').value;
+  $('wc-m').innerHTML=MODELS.map(m=>`<option ${m===(pm||lm)?'selected':''}>${esc(m)}</option>`).join('');
+  $('wc-v').innerHTML=VOICES.map(v=>`<option ${v===(pv||lv)?'selected':''}>${esc(v)}</option>`).join('');
+  if(pm&&[...$('wc-m').options].some(o=>o.textContent===pm))$('wc-m').value=pm;
+  if(pv&&[...$('wc-v').options].some(o=>o.textContent===pv))$('wc-v').value=pv}
+async function wcGen(){
+  if(!$('wc-text').value.trim()){toast('请先输入文案');return}
+  await wcPrep();
+  if(!$('wc-m').value||!$('wc-v').value){toast('缺少模特或音色');return}
+  let j;try{
+    const r=await fetch('/api/works/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:$('wc-text').value,model:$('wc-m').value,voice:$('wc-v').value})});
+    j=await r.json();
+  }catch(e){toast('请求失败：'+e);return}
+  if(!j.ok){toast('无法开始生成：'+(j.error||''));return}
+  toast('生成已启动，进度见下方');
+  $('wc-st').textContent='生成中…';
+  $('wc-prog').style.display='block';$('wc-bar').style.width='0%';$('wc-pct').textContent='0%';
+  $('wc-log').textContent='';
+  clearInterval(window.__wcPoll);window.__wcPoll=setInterval(wcPoll,1200);wcPoll()}
+/* [进度动画 2026-09-20] 真实进度:后端按段落/渲染帧号报 progress,前端驱动阶段指示+进度条+日志 */
+const WC_STEPS=['合成语音','离线渲染','完成'];
+async function wcPoll(){
+  let j;try{const r=await fetch('/api/works/status');j=await r.json()}catch(e){return}
+  $('wc-prog').style.display='block';
+  const pct=Math.max(0,Math.min(100,j.progress||0));
+  $('wc-bar').style.width=pct+'%';$('wc-pct').textContent=pct+'%';
+  $('wc-phase').textContent=j.running?('阶段：'+(j.phase||j.stage)):((j.error?('失败：'+j.error)):(j.file?('已完成：'+j.file):'')));
+  const cur=j.running?WC_STEPS.indexOf(j.phase||''):-1;
+  [...document.querySelectorAll('#wc-steps .wstep')].forEach((el,i)=>{
+    el.classList.toggle('on',j.running&&i===cur);
+    el.classList.toggle('done',j.running?i<cur:(!j.error&&j.file));});
+  const lg=$('wc-log');lg.textContent=(j.log||[]).slice(-3).join('\n');lg.scrollTop=lg.scrollHeight;
+  if(j.running)return;
+  clearInterval(window.__wcPoll);window.__wcPoll=null;
+  if(j.error){$('wc-st').textContent='生成失败：'+j.error;toast('生成失败');return}
+  if(j.file){$('wc-st').textContent='已生成：'+j.file+'（短视频页可播放）';toast('短视频已生成')}}
+async function renderWorks(){
+  let items=[],run=false;
+  try{const [l,s]=await Promise.all([jf('/api/works/list'),jf('/api/works/status')]);items=l.items||[];run=!!s.running;
+    if(run){clearTimeout(window.__wkTimer);window.__wkTimer=setTimeout(renderWorks,2500)}
+  }catch(e){}
+  $('wk-done').textContent=items.length;$('wk-run').textContent=run?1:0;
+  $('works-grid').innerHTML=items.map(w=>`<div class="card" style="padding:10px">
+    <video controls preload="metadata" src="/works/${encodeURIComponent(w.name)}" style="width:100%;border-radius:10px;background:#000;aspect-ratio:9/16;max-height:320px;object-fit:contain"></video>
+    <div class="muted" style="font-size:12px;margin-top:6px">${esc(w.name)} · ${(w.size/1048576).toFixed(1)}MB</div></div>`).join('');
+  $('works-empty').style.display=items.length?'none':'flex'}
+/* ---------- 云算力 ---------- */
+async function cloudInfo(){try{const s=await jf('/api/engine/status');if(s.stream_url)$('cloud-gpu').textContent='本机显卡（推理中）'}catch(e){}}
+/* ---------- hash 路由(T-076/R-3-010 + T-048/R-1C-010) ---------- */
+/* 15 条 hash 路由语义不变;新增: hashchange 复用同一映射 + 未映射 hash 提示"页面不存在" */
+const ROUTE_MAP={'dash':'dash','live-dash':'live','live-guard':'guard','gpt3':'copy','tool':'tool','works':'works','pannel/model':'model','pannel/voice':'voice','pannel/account':'llm','cloud':'cloud','modules':'modules','train':'train','live-create':'livecreate','live':'studio','work-create':'workcreate'};
+let __lastHash=null;
+function routeHash(){__lastHash=location.hash;const h=location.hash.replace('#/','');const p=ROUTE_MAP[h];
+  if(p){go(p)}else if(h){toast('页面不存在: '+h)}/* T-048: 未映射 hash 明示而非静默落工作台 */
+  }
+window.addEventListener('hashchange',()=>{if(location.hash!==__lastHash)routeHash()});/* T-076: 地址栏改 hash 即切页(程序性跳转经 __lastHash 去重) */
+/* ---------- 启动 ---------- */
+(async function(){try{const [m,v,s]=await Promise.all([jf('/api/engine/models'),jf('/api/engine/voices'),jf('/api/engine/status')]);
+  MODELS=m.items||[];VOICES=v.items||[];if(s.stream_url)$('rtmp-url').textContent='rtmp://127.0.0.1:'+((s.ports||{}).rtmp||4035)+'/'+(s.stream_name||'live/0');/* T-055(R-1C-018): 回退常量改重建版 4035 */
+}catch(e){}loadLives();bwLoad();
+ document.querySelectorAll('#st-check .chk input').forEach(c=>c.addEventListener('change',stGoGate));stGoGate();
+ routeHash();/* T-076: 启动与 hashchange 共用 ROUTE_MAP */
+})();
+</script>
+</body>
+</html>
